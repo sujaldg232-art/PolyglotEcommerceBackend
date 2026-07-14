@@ -1,0 +1,4 @@
+Service Return And Reasons
+ 2: if
+ 1: if Not Found or Bad Request
+ 0: if successfull

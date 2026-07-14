@@ -1,0 +1,21 @@
+  syntax = "proto3";
+
+  package org.example;
+
+  option java_multiple_files = true;
+  option java_package = "org.example.grpc";
+  option java_outer_classname = "DataProto";
+
+  message ProductValidationDto{
+    string productID = 1;
+    int32 Quantity = 2;
+  }
+
+  message ProductValidationDtoResponse{
+    bool isValid = 1;
+    string error = 2;
+  }
+
+  service productValidateDto{
+    rpc validateProductValidation(ProductValidationDto) returns (ProductValidationDtoResponse);
+  }
