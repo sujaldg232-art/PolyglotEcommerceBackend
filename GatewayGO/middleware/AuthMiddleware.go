@@ -33,6 +33,12 @@ type CustomClaims struct {
 
 var ctx = context.Background()
 
+var rdb = redis.NewClient(&redis.Options{
+	Addr:     "redis-server:6379",
+	Password: "",
+	DB:       0,
+})
+
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if excludedPaths[r.URL.Path] {
@@ -66,12 +72,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "ACCESS DENIED : SELLER CAN NOT ACCESS ORDER ENDPOINTS!!", http.StatusForbidden)
 			return
 		}
-
-		rdb := redis.NewClient(&redis.Options{
-			Addr:     "redis-server:6379",
-			Password: "",
-			DB:       0,
-		})
 
 		_, err := rdb.Get(ctx, tokenStr).Result()
 
