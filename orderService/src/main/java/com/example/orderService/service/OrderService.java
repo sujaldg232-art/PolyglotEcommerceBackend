@@ -85,15 +85,16 @@ public class OrderService {
         Set<Long> idsToDelete = new HashSet<>(orderLineID);
         BigDecimal totalToBeRemoved = BigDecimal.ZERO;
 
-        for (OrderLine line : orderLines) {
+        Iterator<OrderLine> iterator = orderLines.iterator();
+        while (iterator.hasNext()) {
+            OrderLine line = iterator.next();
             if (idsToDelete.contains(line.getOrderLineID())) {
                 totalToBeRemoved = totalToBeRemoved.add(line.getTotalPrice());
+                iterator.remove();
             }
         }
 
         orderData.setTotalPrice(orderData.getTotalPrice().subtract(totalToBeRemoved));
-        orderLines.removeIf(line -> idsToDelete.contains(line.getOrderLineID()));
-
         return orderMapper.entityToResponse(orderRepo.save(orderData));
     }
 
@@ -153,11 +154,8 @@ public class OrderService {
     @TransactionScoped
     public void deleteByBuyerId(UUID buyerId){
         OrderData orderData = orderRepo.findByBuyerId(buyerId).orElse(null);
-
         if(orderData != null){
             orderRepo.delete(orderData);
         }
-
-
     }
 }
