@@ -16,6 +16,8 @@ func main() {
 		"productservice": parseURL("http://product-service:8082"),
 	}
 
+
+
 	proxy := &httputil.ReverseProxy{
 		Rewrite: func(pr *httputil.ProxyRequest) {
 
