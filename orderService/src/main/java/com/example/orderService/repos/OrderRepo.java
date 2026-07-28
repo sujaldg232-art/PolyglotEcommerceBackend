@@ -15,5 +15,6 @@ public interface OrderRepo extends JpaRepository<OrderData, UUID> {
     @Query("select p.orderLines from OrderData p where p = :orderData")
     List<OrderLine> fetchAllTheOrderLine(OrderData orderData);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<OrderData> findByBuyerId(UUID uuid);
 }

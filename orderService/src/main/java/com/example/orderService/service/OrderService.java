@@ -121,6 +121,7 @@ public class OrderService {
     }
 
     @Transactional
+
     public OrderResponseDto addMultipleOrderLine(UUID buyerId, List<OrderLineRequestDto> orderLineRequestDtos) {
         OrderData orderData = orderRepo.findByBuyerId(buyerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));

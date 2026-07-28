@@ -48,43 +48,31 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Unauthorized1", http.StatusUnauthorized)
+
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-			http.Error(w, "Unauthorized2", http.StatusUnauthorized)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		tokenStr := parts[1]
 		claims := &CustomClaims{}
 
-		UserRole := claims.Role
-
-		if UserRole == "BUYER" && strings.HasPrefix(r.URL.Path, "/productservice") {
-			http.Error(w, "ACCESS DENIED : BUYER CAN NOT ACCESS PRODUCT ENDPOINTS!!", http.StatusForbidden)
-			return
-		}
-
-		if UserRole == "SELLER" && strings.HasPrefix(r.URL.Path, "/orderservice") {
-			http.Error(w, "ACCESS DENIED : SELLER CAN NOT ACCESS ORDER ENDPOINTS!!", http.StatusForbidden)
-			return
-		}
-
 		_, err := rdb.Get(ctx, tokenStr).Result()
-
 		if err == nil {
-			w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token", error_description="The token has been revoked"`)
+			w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token"`)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"code": "TOKEN_REVOKED", "message": "This session has been invalidated or logged out"}`))
+			w.Write([]byte(`{"code": "TOKEN_REVOKED"}`))
 			return
 		} else if err != redis.Nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"code": "SERVER_ERROR", "message": "Internal authentication service error"}`))
+			w.Write([]byte(`{"code": "SERVER_ERROR"}`))
 			return
 		}
 
@@ -97,26 +85,37 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		if err != nil {
 			if errors.Is(err, jwt.ErrTokenExpired) {
-				w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token", error_description="The access token expired"`)
+				w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token"`)
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte(`{"code": "TOKEN_EXPIRED", "message": "Token has expired"}`))
+				w.Write([]byte(`{"code": "TOKEN_EXPIRED"}`))
 				return
 			}
-
-			http.Error(w, "Unauthorized3", http.StatusUnauthorized)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		if !token.Valid {
-			http.Error(w, "Unauthorized4", http.StatusUnauthorized)
+
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		UserRole := claims.Role
+
+		if UserRole == "BUYER" && strings.HasPrefix(r.URL.Path, "/productservice") {
+			http.Error(w, "ACCESS DENIED", http.StatusForbidden)
+			return
+		}
+
+		if UserRole == "SELLER" && strings.HasPrefix(r.URL.Path, "/orderservice") {
+			http.Error(w, "ACCESS DENIED", http.StatusForbidden)
 			return
 		}
 
 		if claims.Id == "" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error": "invalid_payload", "message": "User ID claim is missing or empty"}`))
+			w.Write([]byte(`{"error": "invalid_payload"}`))
 			return
 		}
 
@@ -124,14 +123,12 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf(`{"error": "invalid_uuid", "message": "User ID is not a valid UUID", "details": "%s"}`, err.Error())))
+			w.Write([]byte(`{"error": "invalid_uuid"}`))
 			return
 		}
 
-		isActive := claims.IsActive
-		isDeleted := claims.IsDeleted
-		if !isActive || isDeleted {
-			http.Error(w, "Unauthorized Account Is Not Active Or is to be Deleted!", http.StatusUnauthorized)
+		if !claims.IsActive || claims.IsDeleted {
+			http.Error(w, "Unauthorized Account", http.StatusUnauthorized)
 			return
 		}
 
