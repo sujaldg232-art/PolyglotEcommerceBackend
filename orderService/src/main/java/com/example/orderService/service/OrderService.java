@@ -4,6 +4,7 @@ import com.example.orderService.dtos.OrderLineDtos.OrderLineRequestDto;
 import com.example.orderService.dtos.OrderDtos.OrderResponseDto;
 import com.example.orderService.entities.OrderData;
 import com.example.orderService.entities.OrderLine;
+import com.example.orderService.entities.OrderStatus;
 import com.example.orderService.mapper.OrderLineMapper;
 import com.example.orderService.mapper.OrderMapper;
 import com.example.orderService.repos.OrderRepo;
@@ -41,6 +42,7 @@ public class OrderService {
                 .buyerId(buyerId)
                 .orderLines(list)
                 .totalPrice(BigDecimal.ZERO)
+                .orderStatus(OrderStatus.PENDING)
                 .build();
 
         return orderMapper.entityToResponse(orderRepo.save(orderData));
@@ -111,6 +113,7 @@ public class OrderService {
 
         orderLine.setSellerID(UUID.fromString(validationOutput.getSellerID()));
         orderLine.setTotalPrice(finalPrice);
+        orderData.setOrderStatus(OrderStatus.PENDING);
         
         List<OrderLine> list = orderData.getOrderLines();
         list.add(orderLine);
@@ -125,6 +128,7 @@ public class OrderService {
     public OrderResponseDto addMultipleOrderLine(UUID buyerId, List<OrderLineRequestDto> orderLineRequestDtos) {
         OrderData orderData = orderRepo.findByBuyerId(buyerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+        orderData.setOrderStatus(OrderStatus.PENDING);
 
         List<org.example.grpc.OrderLineValidationOutPut> validationOutputs = productToOrderServiceGrpc.validateOrderlines(orderLineRequestDtos);
 

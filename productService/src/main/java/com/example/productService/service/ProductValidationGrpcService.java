@@ -18,9 +18,7 @@ public class ProductValidationGrpcService extends OrderLineValidationServiceGrpc
 
     @Override
     public void validateOrderLine(OrderlineValidationDto request, StreamObserver<OrderLineValidationOutPut> responseObserver) {
-
         OrderLineValidationOutPut internalResponse = productService.isValid(request);
-
         responseObserver.onNext(internalResponse);
         responseObserver.onCompleted();
     }
@@ -28,13 +26,10 @@ public class ProductValidationGrpcService extends OrderLineValidationServiceGrpc
     @Override
     public void validateMultipleOrderLines(BatchOrderLineValidationRequest request, StreamObserver<BatchOrderLineValidationResponse> responseObserver) {
         List<OrderlineValidationDto> list = request.getRequestsList();
-
         List<OrderLineValidationOutPut> validationOutputs = productService.isValidBatch(list);
-
         BatchOrderLineValidationResponse response = BatchOrderLineValidationResponse.newBuilder()
                 .addAllResponses(validationOutputs)
                 .build();
-
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }

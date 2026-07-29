@@ -3,7 +3,9 @@ package com.example.orderService.repos;
 import com.example.orderService.entities.OrderData;
 
 import com.example.orderService.entities.OrderLine;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
