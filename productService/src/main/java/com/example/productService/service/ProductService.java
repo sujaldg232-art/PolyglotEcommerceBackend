@@ -195,15 +195,7 @@ public class ProductService {
             int quantity = data.getQuantity();
             Product product = productRepo.findById(productID).orElse(null);
 
-            if(product.isAvailable() == false){
-                return OrderLineValidationOutPut.newBuilder()
-                        .setIsValid(false)
-                        .setSellerID("")
-                        .setPrice("-1")
-                        .setError("Product Not Available")
-                        .setErrorId(404)
-                        .build();
-            }
+
 
             if (product == null) {
                 return OrderLineValidationOutPut.newBuilder()
@@ -211,6 +203,16 @@ public class ProductService {
                         .setSellerID("")
                         .setPrice("-1")
                         .setError("Product Not Found")
+                        .setErrorId(404)
+                        .build();
+            }
+
+            if(product.isAvailable() == false){
+                return OrderLineValidationOutPut.newBuilder()
+                        .setIsValid(false)
+                        .setSellerID("")
+                        .setPrice("-1")
+                        .setError("Product Not Available")
                         .setErrorId(404)
                         .build();
             }
@@ -265,20 +267,22 @@ public class ProductService {
                 int quantity = data.getQuantity();
                 Product product = productMap.get(productID);
 
-                if(product.isAvailable() == false){
-                    results.add(OrderLineValidationOutPut.newBuilder()
-                            .setIsValid(false)
-                            .setSellerID("")
-                            .setPrice("-1")
-                            .setError("Product Not Available")
-                            .setErrorId(404)
-                            .build());
-                }else if (product == null) {
+
+                if (product == null) {
                     results.add(OrderLineValidationOutPut.newBuilder()
                             .setIsValid(false)
                             .setSellerID("")
                             .setPrice("-1")
                             .setError("Product Not Found")
+                            .setErrorId(404)
+                            .build());
+                }
+                else if(product.isAvailable() == false){
+                    results.add(OrderLineValidationOutPut.newBuilder()
+                            .setIsValid(false)
+                            .setSellerID("")
+                            .setPrice("-1")
+                            .setError("Product Not Available")
                             .setErrorId(404)
                             .build());
                 } else if (product.getStockQuantity() >= quantity) {
